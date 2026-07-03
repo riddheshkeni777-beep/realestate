@@ -1,0 +1,24 @@
+# Local Netlify folder
+.netlify
+
+# Dependencies
+node_modules/
+
+# Local Environment Variables
+.env
+.env.local
+.env.*.local
+# Allow .env.example (safe template — no real secrets)
+!.env.example
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Deploy artifacts (binary ZIP, DB files)
+deploy/
+*.zip
+*.lock

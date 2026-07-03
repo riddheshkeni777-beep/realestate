@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Real Estate News Intelligence & Distribution Platform — Automated daily property updates across India">
+  <title>Real Estate Updates — Intelligence Desk</title>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,72,400;0,72,500;0,72,600;0,72,700;1,72,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- jsPDF & jsPDF AutoTable CDNs for Frontend Report Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+
+  <!-- ============ TOAST NOTIFICATION CONTAINER ============ -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- ============ TOP BAR ============ -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="stamp"><span>RE<br>DESK</span></div>
+        <div class="brand-text">
+          <b>Real Estate Updates</b>
+          <small>India · Intelligence Desk</small>
+        </div>
+      </div>
+      <div class="search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input id="searchInput" placeholder="Search builder, project, city, RERA number…">
+      </div>
+      <div class="topnav" id="topnav">
+        <button class="nav-btn active" data-view="feed">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          </svg>
+          Feed
+        </button>
+        <button class="nav-btn" data-view="saved">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+          </svg>
+          Saved
+        </button>
+        <button class="nav-btn" data-view="admin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+          </svg>
+          Admin Panel
+        </button>
+      </div>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M3 6h18M3 12h18M3 18h18" />
+        </svg>
+      </button>
+    </div>
+    <!-- Mobile Nav Drawer -->
+    <div class="mobile-nav" id="mobileNav">
+      <button class="nav-btn" data-view="feed" data-mobile="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        </svg>
+        Feed
+      </button>
+      <button class="nav-btn" data-view="saved" data-mobile="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+        </svg>
+        Saved
+      </button>
+      <button class="nav-btn" data-view="admin" data-mobile="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+        </svg>
+        Admin Panel
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ FEED VIEW ============ -->
+  <div id="view-feed" class="shell" data-shell>
+    <aside class="filters" id="filtersPanel">
+      <div class="filter-card">
+        <h3>Filter Updates</h3>
+        <div class="filter-group">
+          <label>Location</label>
+          <div class="chip-row" id="filter-city">
+            <button class="chip on" data-city="All">All India</button>
+            <button class="chip" data-city="Mumbai">Mumbai</button>
+            <button class="chip" data-city="Thane">Thane</button>
+            <button class="chip" data-city="Pune">Pune</button>
+            <button class="chip" data-city="Bengaluru">Bengaluru</button>
+            <button class="chip" data-city="Gurugram">Gurugram</button>
+            <button class="chip" data-city="Noida">Noida</button>
+            <button class="chip" data-city="Hyderabad">Hyderabad</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>Category</label>
+          <div class="chip-row" id="filter-category">
+            <button class="chip on" data-cat="All">Any</button>
+            <button class="chip" data-cat="Project Launch">Launch</button>
+            <button class="chip" data-cat="Land Acquisition">Acquisition</button>
+            <button class="chip" data-cat="Redevelopment">Redevelopment</button>
+            <button class="chip" data-cat="RERA">RERA</button>
+            <button class="chip" data-cat="Funding">Funding</button>
+            <button class="chip" data-cat="Government Policy">Policy</button>
+            <button class="chip" data-cat="Infrastructure">Infrastructure</button>
+            <button class="chip" data-cat="Litigation">Litigation</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>RERA Status</label>
+          <div class="chip-row" id="filter-rera">
+            <button class="chip on" data-rera="All">Any</button>
+            <button class="chip" data-rera="Registered">Registered Only</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>Priority Score</label>
+          <div class="chip-row" id="filter-priority">
+            <button class="chip on" data-priority="All">Any</button>
+            <button class="chip" data-priority="High">High (7–10)</button>
+            <button class="chip" data-priority="Normal">Normal (&lt;7)</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="feed-head">
+        <div>
+          <h1>Today's Real Estate Desk</h1>
+          <p id="resultCount">Loading updates...</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="btn-run-scraper" id="btnRunScraperFeed" title="Fetch latest real estate news via AI pipeline">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38" />
+            </svg>
+            <span id="runScraperBtnLabel">Run Scraper</span>
+          </button>
+          <button class="filter-toggle" id="filterToggleBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+            Filters <span class="dot"></span>
+          </button>
+        </div>
+      </div>
+      <div id="feedList"></div>
+    </main>
+  </div>
+
+  <!-- ============ DETAIL VIEW ============ -->
+  <div id="view-detail" class="detail-wrap hidden"></div>
+
+  <!-- ============ SAVED VIEW ============ -->
+  <div id="view-saved" class="section-page hidden">
+    <div class="feed-head">
+      <div>
+        <h1>Saved News</h1>
+        <p id="savedCount">0 bookmarked updates</p>
+      </div>
+    </div>
+    <div id="savedList"></div>
+  </div>
+
+  <!-- ============ ADMIN PANEL VIEW ============ -->
+  <div id="view-admin" class="section-page hidden">
+    <div class="feed-head">
+      <div>
+        <h1>Admin Control Dashboard</h1>
+        <p>Manage your subscriber database and configure background system operations.</p>
+      </div>
+    </div>
+
+    <!-- Admin Tab Row Navigation -->
+    <div class="tab-row" id="adminTabs" style="display:flex; gap:10px; margin-bottom: 20px; border-bottom: 1px solid var(--sand-dark); padding-bottom: 12px; flex-wrap: wrap;">
+      <button class="btn tab-btn active" data-tab="pipeline" style="height:34px; padding: 0 16px; font-weight:600; font-size:12.5px; border-radius: 6px; cursor:pointer;">Pipeline &amp; Settings</button>
+      <button class="btn tab-btn" data-tab="recipients" style="height:34px; padding: 0 16px; font-weight:600; font-size:12.5px; border-radius: 6px; cursor:pointer;">Recipients DB</button>
+      <button class="btn tab-btn" data-tab="sources" style="height:34px; padding: 0 16px; font-weight:600; font-size:12.5px; border-radius: 6px; cursor:pointer;">Source Config</button>
+      <button class="btn tab-btn" data-tab="analytics" style="height:34px; padding: 0 16px; font-weight:600; font-size:12.5px; border-radius: 6px; cursor:pointer;">Campaign Analytics</button>
+    </div>
+
+    <div class="admin-grid">
+      <!-- AI Engine & Settings Card (Collapsible) -->
+      <details class="admin-card full-width-card admin-collapsible-details" id="settingsCard">
+        <summary class="admin-collapsible-summary">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+            </svg>
+            AI Engine &amp; System Settings
+          </h2>
+          <span class="accordion-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </span>
+        </summary>
+        <div class="collapsible-content-wrapper" style="margin-top: 14px;">
+          <p class="admin-card-desc">The AI engine runs automatically every morning. Technical credentials live securely on the backend server. Enter dynamic Groq/Grok API keys locally if running client-side bypass.</p>
+          <div class="api-config-row" style="margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap;">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px;">
+              <label class="section-label" style="display:block;margin-bottom:0;">Groq API Key (Client Override)</label>
+              <input type="password" id="inputGroqKey" class="text-input" placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                autocomplete="off" style="width:100%;">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px;">
+              <label class="section-label" style="display:block;margin-bottom:0;">Grok API Key (Client Override)</label>
+              <input type="password" id="inputGrokKey" class="text-input" placeholder="xai-xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                autocomplete="off" style="width:100%;">
+            </div>
+          </div>
+          <div class="api-config-row" style="margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+            <div style="display:flex;flex-direction:column;gap:4px;width:200px;">
+              <label class="section-label" style="display:block;margin-bottom:0;">Preferred AI Provider</label>
+              <select id="selectAiProvider" class="text-input" style="width:100%; height:38px; padding:0 8px; border-radius:6px; background:var(--surface); border:1px solid var(--hairline); color:var(--ink);">
+                <option value="groq">Groq (Llama-3.1)</option>
+                <option value="grok">Grok (xAI)</option>
+              </select>
+            </div>
+            <button class="btn primary" id="btnSaveApiKeys" style="height:38px;">Save Settings &amp; Keys</button>
+          
+          <!-- Branded Dispatch API Credentials -->
+          <div class="api-config-row" style="border-top: 1px dashed var(--sand-dark); padding-top: 15px; margin-top: 15px; display:flex; flex-direction:column; gap:12px;">
+            <h4 style="margin:0; font-size:14px; color:var(--forest)">Branded Dispatch API Credentials</h4>
+            <p class="admin-card-desc" style="margin:0 0 4px 0;">Configure optional API keys to dispatch emails and WhatsApp bulletins directly. If empty, client will fallback to Mailto and standard WhatsApp web links.</p>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 5px;">
+              <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px;">
+                <label class="section-label" style="display:block;margin-bottom:0;">Resend API Key (Email)</label>
+                <input type="password" id="inputResendKey" class="text-input" placeholder="re_xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" style="width:100%;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px;">
+                <label class="section-label" style="display:block;margin-bottom:0;">WhatsApp API Token</label>
+                <input type="password" id="inputWaToken" class="text-input" placeholder="EAAGxxxxxxxxxxxxxxxxxxxx" autocomplete="off" style="width:100%;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px;">
+                <label class="section-label" style="display:block;margin-bottom:0;">WhatsApp Phone Number ID</label>
+                <input type="text" id="inputWaPhoneId" class="text-input" placeholder="e.g. 105948302049" autocomplete="off" style="width:100%;">
+              </div>
+            </div>
+          </div>
+          
+          <!-- System Automation toggles -->
+          <div class="api-config-row" style="border-top: 1px dashed var(--sand-dark); padding-top: 15px; display:flex; flex-direction:column; gap:12px;">
+            <h4 style="margin:0; font-size:14px; color:var(--forest)">System Automation Settings</h4>
+            <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom: 5px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:500;">
+                <input type="checkbox" id="chkAutoSend" style="width:16px; height:16px; accent-color:var(--forest);" checked>
+                Auto-Send Bulletins (Autopilot at 8:00 AM)
+              </label>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:500;">
+                <input type="checkbox" id="chkMaharashtraFirst" style="width:16px; height:16px; accent-color:var(--forest);">
+                Maharashtra-First Filter (MH sources only)
+              </label>
+            </div>
+            <button class="btn primary small" id="btnSaveSystemSettings" style="align-self:flex-start;">Save Automation Settings</button>
+          </div>
+          <p id="keyStatusMsg" style="font-size:12px;margin-top:8px;color:var(--success);font-weight:600;"></p>
+        </div>
+      </details>
+
+      <!-- Scraper & AI Engine Status -->
+      <div class="admin-card full-width-card" id="pipelineCard">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4l3 3" />
+          </svg>
+          News Scraping &amp; AI Intelligence Pipeline
+        </h2>
+        <p class="admin-card-desc">Scrapes RSS feeds and official portals (Cheerio HTML parser), dedupes duplicate stories with publication lists, and shortlists items. Scheduled runs execute at 8:00 AM daily.</p>
+        
+        <!-- Last automated run log -->
+        <div id="scrapeRunsStatus" style="margin: 8px 0 15px 0; padding: 12px; background: var(--sand); border-radius: 6px; font-size: 13px; border: 1px solid var(--sand-dark);">
+          <span style="font-weight:700; color:var(--forest);">Last Automated Scrape:</span>
+          <span id="lblLastScrapeTime" style="color:var(--ink-soft)">No runs logged yet</span>
+          <div style="margin-top: 6px; font-size: 12px; display: flex; gap: 16px; color: var(--ink-soft);">
+            <span>Raw Collected: <b id="lblLastScrapedCount" style="color:var(--ink)">0</b></span>
+            <span>Clustered: <b id="lblLastDedupCount" style="color:var(--ink)">0</b></span>
+            <span>AI Shortlisted: <b id="lblLastShortlistedCount" style="color:var(--ink)">0</b></span>
+          </div>
+        </div>
+
+        <div class="scraper-actions">
+          <button class="btn primary" id="btnRunScraper">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38" />
+            </svg>
+            Run AI Scraper Now
+          </button>
+          <button class="btn ghost" id="btnClearLogs">Clear Console</button>
+        </div>
+
+        <details class="console-accordion-details" id="consoleDetails">
+          <summary class="console-summary-head">
+            <span>Show Live Activity Logs</span>
+            <span class="accordion-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </span>
+          </summary>
+          <div class="console-box" id="scraperConsole" style="margin-top: 10px;">
+            <p class="console-line info">[System] Console initialized. Ready to execute pipeline runs.</p>
+          </div>
+        </details>
+
+        <div class="status-rows">
+          <div class="status-row">
+            <span class="status-label">Primary AI Engine</span>
+            <span class="status-val green" id="key1Status">Active</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Backup AI Engine</span>
+            <span class="status-val green" id="key2Status">Standby Ready</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Auto-Failover Protection</span>
+            <span class="status-val green" id="failoverCount">Fully Operational</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Scheduled Daily Run</span>
+            <span class="status-val green">8:00 AM IST · Active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recipients Database -->
+      <div class="admin-card full-width-card hidden" id="recipientsCard">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Recipients Database
+        </h2>
+        <p class="admin-card-desc">Manage subscribers and per-recipient region/category filtering. Default is WhatsApp.</p>
+        <div id="adminContactList"></div>
+
+        <!-- Inline New Group Form (shown when "New Group" clicked) -->
+        <div id="newGroupForm" class="new-group-form hidden">
+          <div class="ngf-inner">
+            <h4>Create New Recipient Group</h4>
+            <div class="ngf-row">
+              <div class="form-group" style="flex:2;">
+                <label>Group Name</label>
+                <input type="text" id="ngfName" class="text-input" placeholder="e.g. Mumbai Investors">
+              </div>
+              <div class="form-group" style="flex:3;">
+                <label>Description <small>(optional)</small></label>
+                <input type="text" id="ngfDesc" class="text-input" placeholder="e.g. HNI investors in Mumbai">
+              </div>
+            </div>
+            <div class="ngf-actions">
+              <button class="btn primary small" id="btnNewGroupSave">Create Group</button>
+              <button class="btn ghost small" id="btnNewGroupCancel">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn primary small" id="btnNewGroup">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            New Group
+          </button>
+          <button class="btn ghost small" id="btnDownloadTemplate">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download CSV Template
+          </button>
+        </div>
+      </div>
+
+      <!-- Source Configurations admin card -->
+      <div class="admin-card full-width-card hidden" id="sourcesCard">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          Source Configurations
+        </h2>
+        <p class="admin-card-desc">Add and manage RSS feeds, builder pages, RERA websites, and Government portals.</p>
+        
+        <div id="adminSourceConfigList" class="contacts-table-wrap" style="max-height:220px; overflow-y:auto; border:1px solid var(--sand-dark); border-radius:6px; margin-bottom:12px;">
+          <!-- Rendered dynamically in app.js -->
+        </div>
+
+        <!-- Inline New Source Form -->
+        <div id="newSourceForm" class="new-group-form hidden">
+          <div class="ngf-inner" style="border: 1px solid var(--sand-dark); border-radius: 8px; padding: 12px; background: var(--sand);">
+            <h4 id="nsFormTitle" style="margin-top:0; margin-bottom:8px;">Add News Source</h4>
+            <div class="ngf-row" style="margin-bottom: 8px; display:flex; gap:8px;">
+              <div class="form-group" style="flex: 2;">
+                <label>Source Name</label>
+                <input type="text" id="nsName" class="text-input" placeholder="e.g. Lodha News" style="width:100%;">
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label>Type</label>
+                <select id="nsType" class="text-input" style="height: 38px; border: 1px solid var(--sand-dark); border-radius: 6px; padding: 0 8px; background: white; width:100%;">
+                  <option value="rss">RSS Feed</option>
+                  <option value="builder">Builder Web</option>
+                  <option value="rera">RERA Portal</option>
+                  <option value="govt">Govt Portal</option>
+                  <option value="google_news">Google News</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label>Target URL / Search Query</label>
+              <input type="text" id="nsUrl" class="text-input" placeholder="https://www.lodhagroup.in/news-media" style="width:100%;">
+            </div>
+            <div class="form-group" id="nsSelectorGroup" style="margin-bottom: 12px;">
+              <label>CSS Selector (for title HTML element)</label>
+              <input type="text" id="nsSelector" class="text-input" placeholder="e.g. .news-title" style="width:100%;">
+            </div>
+            <div class="ngf-actions" style="display:flex; gap:8px; justify-content:flex-end;">
+              <button class="btn primary small" id="btnSaveSource">Save Source</button>
+              <button class="btn ghost small" id="btnCancelSource">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <button class="btn primary small" id="btnAddSource">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add Source
+          </button>
+        </div>
+      </div>
+
+      <!-- Report Export Center -->
+      <div class="admin-card full-width-card" id="exportCard">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+          </svg>
+          Report Export Center
+        </h2>
+        <p class="admin-card-desc">Generate professional branded PDF reports from the live news archive.</p>
+
+        <div class="filter-group">
+          <label>Select Report Scope</label>
+          <div class="chip-row" id="reportScopeChips" style="margin-bottom: 15px;">
+            <button class="chip on" data-scope="daily">Daily</button>
+            <button class="chip" data-scope="weekly">Weekly</button>
+            <button class="chip" data-scope="monthly">Monthly</button>
+            <button class="chip" data-scope="city">City-Wise</button>
+            <button class="chip" data-scope="builder">Builder-Wise</button>
+          </div>
+        </div>
+
+        <div class="filter-group hidden" id="reportFilterContainer" style="margin-bottom: 15px;">
+          <label id="reportFilterLabel">Specify Filter Value</label>
+          <input type="text" id="reportFilterInput" placeholder="e.g. Mumbai or Lodha Group" class="text-input">
+        </div>
+
+        <button class="btn primary" id="btnDownloadReport" style="width: 100%;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+          </svg>
+          Compile &amp; Preview PDF Report
+        </button>
+
+        <!-- Live PDF Preview Container -->
+        <div id="reportPreviewContainer" class="hidden" style="margin-top: 15px; border: 1px solid var(--sand-dark); border-radius: 8px; overflow: hidden; background: #fff;">
+          <div style="background: var(--sand); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--sand-dark);">
+            <span style="font-size: 11.5px; font-weight: bold; color: var(--ink-dark); text-transform: uppercase;">Live Report Preview</span>
+            <button class="btn ghost small" id="btnDownloadReportFromPreview" style="padding: 2px 8px; font-size: 11px; height: 24px;">Download PDF</button>
+          </div>
+          <iframe id="reportPreviewIframe" style="width: 100%; height: 380px; border: none; background: #eee;"></iframe>
+        </div>
+      </div>
+
+      <!-- Campaign Analytics -->
+      <div class="admin-card full-width-card hidden" id="analyticsCard">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.21 15.89A10 10 0 1 1 8 2.83M22 12A10 10 0 0 0 12 2v10z" />
+          </svg>
+          Campaign Analytics
+        </h2>
+        <div class="chart-container" id="analyticsChart"></div>
+        <div class="stats-grid">
+          <div class="stat-item s-sent">
+            <label>Total Sent</label>
+            <span id="statSent">0</span>
+          </div>
+          <div class="stat-item s-opens">
+            <label>Opens</label>
+            <span id="statOpens">0</span>
+          </div>
+          <div class="stat-item s-clicks">
+            <label>Clicks</label>
+            <span id="statClicks">0</span>
+          </div>
+        </div>
+        
+        <h4 class="section-label" style="margin-top: 18px;">Campaign Dispatch Log</h4>
+        <div class="campaign-log-list" id="campaignLogList" style="max-height:160px; overflow-y:auto;"></div>
+        
+        <h4 class="section-label" style="margin-top: 18px;">Personalized Recipient Dispatches</h4>
+        <div class="campaign-log-list" id="dispatchLogList" style="max-height:220px; overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SELECTION TRAY ============ -->
+  <div class="tray" id="tray">
+    <div class="tray-count"><b id="trayNum">0</b> updates selected for bulletin</div>
+    <div class="tray-spacer"></div>
+    <button class="clear" id="trayClear">Clear</button>
+    <button class="create" id="trayCreate">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 19l9 2-9-18-9 18z" />
+      </svg>
+      Create Daily Bulletin
+    </button>
+  </div>
+
+  <!-- ============ BULLETIN MODAL ============ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="stamp"><span>RE<br>BULLETIN</span></div>
+        <h2>Create Daily Bulletin</h2>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-steps">
+        <div class="mstep active" data-step="1">1 · Selected News</div>
+        <div class="mstep" data-step="2">2 · Branded Format</div>
+        <div class="mstep" data-step="3">3 · Broadcast Dispatch</div>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- ============ PDF PREVIEW MODAL ============ -->
+  <div class="modal-overlay hidden" id="pdfPreviewModal" style="z-index: 10010;">
+    <div class="modal" style="max-width: 840px; height: 85vh; display: flex; flex-direction: column;">
+      <div class="modal-head" style="flex-shrink: 0; padding: 16px 24px 12px;">
+        <div class="stamp"><span>RE<br>PREVIEW</span></div>
+        <h2 id="pdfPreviewTitle">Digital Bulletin PDF Preview</h2>
+        <button class="modal-close" id="pdfPreviewClose">✕</button>
+      </div>
+      <div class="modal-body" style="flex: 1; padding: 0; position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%;">
+        <iframe id="pdfPreviewIFrame" style="width: 100%; height: 100%; border: none; flex: 1; background: #fafafa;"></iframe>
+      </div>
+      <div style="padding: 12px 24px; border-top: 1px solid var(--sand-dark); display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: var(--sand);">
+        <button class="btn ghost small" id="btnPdfPreviewCloseFooter" style="height: 32px;">Close</button>
+        <button class="btn primary small" id="btnPdfPreviewDownload" style="height: 32px;">Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Application Entry -->
+  <script src="app.js"></script>
+</body>
+
+</html>
